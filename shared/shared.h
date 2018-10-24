@@ -234,9 +234,10 @@ void SHARED_EXPORT uPrintCrashInfo_SetComponentList(const char * p_info);//calle
 void SHARED_EXPORT uPrintCrashInfo_AddEnvironmentInfo(const char * p_info);//called only by the exe on startup
 void SHARED_EXPORT uPrintCrashInfo_SetDumpPath(const char * name);//called only by the exe on startup
 
-void SHARED_EXPORT uDumpCrashInfo(LPEXCEPTION_POINTERS param);
 
 #endif // FB2K_SUPPORT_CRASH_LOGS
+
+void SHARED_EXPORT uDumpCrashInfo(LPEXCEPTION_POINTERS param);
 
 void SHARED_EXPORT uPrintCrashInfo_OnEvent(const char * message, t_size length);
 
@@ -296,8 +297,7 @@ public:
 	inline operator const char * () const {return m_data.get_ptr();}
 	inline t_size length() const {return m_data.length();}
 	inline bool is_empty() const {return length() == 0;}
-	inline const char * get_ptr() const { return m_data.get_ptr(); }
-	inline const char * c_str() const { return get_ptr(); }
+	inline const char * get_ptr() const {return m_data.get_ptr();}
 private:
 	pfc::string8 m_data;
 };
