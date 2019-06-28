@@ -376,7 +376,7 @@ static std::vector<uint8_t> makeWavHeader( const wavWriterSetup_t & setup, t_fil
 		temp->seek( 0, aborter );
 		temp->read_object( &ret[0], s, aborter );
 	}		
-	return std::move(ret);
+	return ret;
 }
 
 file::ptr makeLiveWAVFile( const wavWriterSetup_t & setup, file::ptr data ) {

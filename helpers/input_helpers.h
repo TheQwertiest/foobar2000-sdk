@@ -19,17 +19,17 @@ public:
 	};
 
 	struct decodeOpen_t {
-		decodeOpen_t() : m_from_redirect(), m_skip_hints(), m_flags() {}
-		event_logger::ptr m_logger;
-		bool m_from_redirect;
-		bool m_skip_hints;
-		unsigned m_flags;
+		bool m_from_redirect = false;
+		bool m_skip_hints = false;
+		unsigned m_flags = 0;
 		file::ptr m_hint;
 		ioFilters_t m_ioFilters;
+		event_logger::ptr m_logger;
 	};
 
 	void open(service_ptr_t<file> p_filehint,metadb_handle_ptr p_location,unsigned p_flags,abort_callback & p_abort,bool p_from_redirect = false,bool p_skip_hints = false);
 	void open(service_ptr_t<file> p_filehint,const playable_location & p_location,unsigned p_flags,abort_callback & p_abort,bool p_from_redirect = false,bool p_skip_hints = false);
+	void attach(input_decoder::ptr dec, const char * path);
 
 	void open(const playable_location & location, abort_callback & abort, decodeOpen_t const & other);
 	void open(metadb_handle_ptr location, abort_callback & abort, decodeOpen_t const & other) {this->open(location->get_location(), abort, other);}
@@ -82,6 +82,7 @@ private:
 	void fileOpenTools(service_ptr_t<file> & p_file,const char * p_path, ioFilters_t const & filters, abort_callback & p_abort);
 	service_ptr_t<input_decoder> m_input;
 	pfc::string8 m_path;
+	event_logger::ptr m_logger;
 };
 
 class NOVTABLE dead_item_filter : public abort_callback {
@@ -107,7 +108,8 @@ private:
 
 class input_helper_cue {
 public:
-	void open(service_ptr_t<file> p_filehint,const playable_location & p_location,unsigned p_flags,abort_callback & p_abort,double p_start,double p_length);
+	void open(service_ptr_t<file> p_filehint,const playable_location & p_location,unsigned p_flags,abort_callback & p_abort,double p_start,double p_length, bool binary = false);
+	static void get_info_binary( const char * path, file_info & out, abort_callback & abort );
 
 	void close();
 	bool is_open();
@@ -130,6 +132,7 @@ private:
 	input_helper m_input;
 	double m_start,m_length,m_position;
 	bool m_dynamic_info_trigger,m_dynamic_info_track_trigger;
+	bool m_binary;
 };
 
 //! openAudioData return value, see openAudioData()
