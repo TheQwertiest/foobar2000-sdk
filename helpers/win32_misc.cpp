@@ -208,4 +208,8 @@ bool IsWindowsS() {
 	return ret;
 }
 
+WORD GetOSVersion() {
+	const DWORD ver = GetVersion();
+	return (WORD)HIBYTE(LOWORD(ver)) | ((WORD)LOBYTE(LOWORD(ver)) << 8);
+}
 #endif // FOOBAR2000_DESKTOP_WINDOWS

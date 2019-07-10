@@ -1,5 +1,7 @@
 #pragma once
 
+#include <libPPUI/win32_op.h>
+
 #ifdef _WIN32
 namespace file_win32_helpers {
 	t_filesize get_size(HANDLE p_handle);

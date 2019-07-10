@@ -55,10 +55,7 @@ private:
 	PFC_CLASS_NOT_COPYABLE_EX(CoInitializeScope)
 };
 
-static WORD GetOSVersion() {
-	const DWORD ver = GetVersion();
-	return (WORD)HIBYTE(LOWORD(ver)) | ((WORD)LOBYTE(LOWORD(ver)) << 8);
-}
+WORD GetOSVersion();
 
 #if _WIN32_WINNT >= 0x501
 #define WS_EX_COMPOSITED_Safe() WS_EX_COMPOSITED

@@ -133,6 +133,7 @@
     <ClCompile Include="file_win32_wrapper.cpp" />
     <ClCompile Include="inplace_edit.cpp" />
     <ClCompile Include="input_helpers.cpp" />
+    <ClCompile Include="input_helper_cue.cpp" />
     <ClCompile Include="mp3_utils.cpp" />
     <ClCompile Include="packet_decoder_aac_common.cpp" />
     <ClCompile Include="packet_decoder_mp3_common.cpp" />
@@ -207,6 +208,7 @@
     <ClInclude Include="inplace_edit.h" />
     <ClInclude Include="input_fix_seeking.h" />
     <ClInclude Include="input_helpers.h" />
+    <ClInclude Include="input_helper_cue.h" />
     <ClInclude Include="input_logging.h" />
     <ClInclude Include="input_stream_info_reader.h" />
     <ClInclude Include="meta_table_builder.h" />

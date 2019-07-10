@@ -50,9 +50,8 @@ public:
 		if (m_tempfile.is_valid()) {
 			m_tempfile.release();
 			try {
-                abort_callback_dummy noAbort;
-				retryOnSharingViolation( 1, noAbort, [&] {
-					m_fs->remove(m_temppath, noAbort);
+				retryOnSharingViolation( 1, fb2k::noAbort, [&] {
+					m_fs->remove(m_temppath, fb2k::noAbort);
 				} );
 			} catch(...) {}
 		}

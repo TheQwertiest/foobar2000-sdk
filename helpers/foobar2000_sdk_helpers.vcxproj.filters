@@ -113,6 +113,9 @@
     <ClCompile Include="VolumeMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="input_helper_cue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitreader_helper.h">
@@ -314,6 +317,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CPropVariant.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="input_helper_cue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -51,7 +51,7 @@ namespace ui_element_helpers {
 };
 
 void ui_element_helpers::replace_with_new_element(ui_element_instance_ptr & p_item,const GUID & p_guid,HWND p_parent,ui_element_instance_callback_ptr p_callback) {
-	abort_callback_dummy l_abort;
+	auto & l_abort = fb2k::noAbort;
 	ui_element_config::ptr cfg;
 	try {
 		if (p_item.is_empty()) {

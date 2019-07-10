@@ -380,8 +380,7 @@ static std::vector<uint8_t> makeWavHeader( const wavWriterSetup_t & setup, t_fil
 }
 
 file::ptr makeLiveWAVFile( const wavWriterSetup_t & setup, file::ptr data ) {
-	abort_callback_dummy aborter;
-	t_filesize size = data->get_size( aborter );
-	auto vec = makeWavHeader( setup, size, aborter );
+	t_filesize size = data->get_size( fb2k::noAbort );
+	auto vec = makeWavHeader( setup, size, fb2k::noAbort );
 	return new service_impl_t< fileWav >( std::move(vec), data );
 }

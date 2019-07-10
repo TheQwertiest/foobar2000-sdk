@@ -129,7 +129,7 @@ public:
 		CHAIN_MSG_MAP(TClass)
 	END_MSG_MAP_HOOK()
 private:
-	BOOL OnInitDialog(CWindow, LPARAM) {m_modeless.Set( m_hWnd ); SetMsgHandled(FALSE); return FALSE; }
+	BOOL OnInitDialog(CWindow, LPARAM) {m_modeless.Set( this->m_hWnd ); SetMsgHandled(FALSE); return FALSE; }
 	void OnDestroy() {m_modeless.Set(NULL); SetMsgHandled(FALSE); }
 	CModelessDialogEntry m_modeless;
 };
@@ -175,9 +175,9 @@ public:
 		if (ret == 0) {
 			if (window_service_trait_defer_destruction(this) && !InterlockedExchange(&m_delayedDestroyInProgress,1)) {
 				PFC_ASSERT_NO_EXCEPTION( service_impl_helper::release_object_delayed(this); );
-			} else if (m_hWnd != NULL) {
+			} else if (this->m_hWnd != NULL) {
 				if (!m_destroyWindowInProgress) { // don't double-destroy in weird scenarios
-					PFC_ASSERT_NO_EXCEPTION( ::DestroyWindow(m_hWnd) );
+					PFC_ASSERT_NO_EXCEPTION( ::DestroyWindow(this->m_hWnd) );
 				}
 			} else {
 				PFC_ASSERT_NO_EXCEPTION( delete this );
