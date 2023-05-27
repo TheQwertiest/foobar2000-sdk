@@ -17,9 +17,9 @@ namespace foobar2000_io
 	//! Invalid/unknown file timestamp constant. Also see: t_filetimestamp.
 	const t_filetimestamp filetimestamp_invalid = 0;
 	//! Invalid/unknown file size constant. Also see: t_filesize.
-	static const t_filesize filesize_invalid = (t_filesize)(UINT64_MAX);
+	static constexpr t_filesize filesize_invalid = (t_filesize)(UINT64_MAX);
 
-	static const t_filetimestamp filetimestamp_1second_increment = 10000000;
+	static constexpr t_filetimestamp filetimestamp_1second_increment = 10000000;
 
 	//! Stores file stats (size and timestamp).
 	struct t_filestats {
@@ -30,6 +30,9 @@ namespace foobar2000_io
 
 		inline bool operator==(const t_filestats& param) const { return m_size == param.m_size && m_timestamp == param.m_timestamp; }
 		inline bool operator!=(const t_filestats& param) const { return m_size != param.m_size || m_timestamp != param.m_timestamp; }
+
+		pfc::string8 describe() const;
+		pfc::string8 debug() const { return describe(); }
 	};
 
 	struct t_filestats2 {
@@ -86,6 +89,11 @@ namespace foobar2000_io
 		bool operator!=(const t_filestats2& other) const { return !equals(*this, other); }
 
 		pfc::string8 describe() const;
+		pfc::string8 debug() const { return describe(); }
+
+		bool haveSize() const { return m_size != filesize_invalid; }
+		bool haveTimestamp() const { return m_timestamp != filetimestamp_invalid; }
+		bool haveTimestampCreate() const { return m_timestampCreate != filetimestamp_invalid; }
 	};
 	enum {
 		stats2_size = 1 << 0,
@@ -102,8 +110,8 @@ namespace foobar2000_io
 	};
 
 	//! Invalid/unknown file stats constant. See: t_filestats.
-	static const t_filestats filestats_invalid = t_filestats();
-	static const t_filestats2 filestats2_invalid = t_filestats2();
+	static constexpr t_filestats filestats_invalid = t_filestats();
+	static constexpr t_filestats2 filestats2_invalid = t_filestats2();
 
 	//! Struct to be used with guid_getFileTimes / guid_setFileTimes.
 	struct filetimes_t {
@@ -369,7 +377,17 @@ namespace foobar2000_io
 		t_filestats2 get_stats2_(uint32_t f, abort_callback& a);
 
 		//! file_v2 wrapper.
+		void set_stats(t_filestats2 const&, abort_callback&);
+
+		//! file_v2 wrapper.
 		t_filetimestamp get_time_created(abort_callback& a);
+
+		//! Alternate version of read() intended for network resources.\n
+		//! See: stream_receive::receive(); \n
+		//! If not implemented by this object, uses plain read().
+		size_t receive(void*, size_t, abort_callback&);
+
+        void commit(abort_callback& a) {flushFileBuffers(a);}
 
 		FB2K_MAKE_SERVICE_INTERFACE(file, service_base);
 	};
@@ -453,11 +471,16 @@ namespace foobar2000_io
 		t_size read(void*, t_size, abort_callback&) { return 0; }
 		t_filesize get_size(abort_callback&) { return filesize_invalid; }
 		t_filesize get_position(abort_callback&) { return 0; }
-		bool get_content_type(pfc::string_base&) { return false; }
-		bool is_remote() { return true; }
+		bool get_content_type(pfc::string_base& out) {
+			if (m_contentType.length() > 0) { out = m_contentType; return true; } else return false;
+		}
+		bool is_remote() { return m_remote; }
 		void reopen(abort_callback&) {}
 		void seek(t_filesize, abort_callback&) { throw exception_io_object_not_seekable(); }
 		bool can_seek() { return false; }
+
+		pfc::string8 m_contentType;
+		bool m_remote = true;
 	};
 
 	//! \since 2.0
@@ -486,14 +509,14 @@ namespace foobar2000_io
 		virtual void get_connected_path(pfc::string_base& out) = 0;
 	};
 
-	//! \since 1.6.7
-	class file_get_metadata : public file {
-		FB2K_MAKE_SERVICE_INTERFACE(file_get_metadata, file);
+
+	//! \since 2.1
+	//! Extension to file object, implemented by network readers. Adds receive() method.
+	class stream_receive : public service_base {
+		FB2K_MAKE_SERVICE_INTERFACE(stream_receive, service_base);
 	public:
-		//! Returns an object with protocol specific metadata of the file. \n
-		//! It is essential that this object is made available to the caller by any wrappers working on top if a file object. \n
-		//! The returned object can be of any implementation-defined class; for http it's file_metdata_http. \n
-		//! Null return is allowed if no metadata is available.
-		virtual service_ptr get_metadata(abort_callback&) = 0;
+		//! Alternate version of read() intended for network resources.\n
+		//! Returns as soon as any data is available (usually less than requested), or EOF has been reached (0 returned).
+		virtual size_t receive(void*, size_t, abort_callback&) = 0;
 	};
 }

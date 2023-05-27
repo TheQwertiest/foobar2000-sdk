@@ -1,13 +1,13 @@
 #pragma once
 
 #include <climits> // UINT_MAX
-
+#include <functional>
 #include "completion_notify.h"
 
 //! This interface allows you to show generic nonmodal noninteractive dialog with a text message. This should be used instead of MessageBox where possible.\n
 //! Usage: use popup_message::g_show / popup_message::g_show_ex static helpers, or popup_message::get() to obtain an instance.\n
+//! Thread safety: OK to call from worker threads (will delegate UI ops to main thread automatically). \n
 //! Note that all strings are UTF-8.
-
 class NOVTABLE popup_message : public service_base {
 public:
 	enum t_icon {icon_information, icon_error, icon_query};
@@ -37,32 +37,32 @@ public:
 	//! <whatfailed>: <msg>
 	static void g_complain(const char * p_whatFailed, const char * msg);
 
-#ifdef FOOBAR2000_MODERN
     static void g_showToast(const char * msg);
     static void g_showToastLongDuration(const char * msg);
-#endif
 
     FB2K_MAKE_SERVICE_COREAPI(popup_message);
 };
 
 #define EXCEPTION_TO_POPUP_MESSAGE(CODE,LABEL) try { CODE; } catch(std::exception const & e) {popup_message::g_complain(LABEL,e);}
 
-#ifdef FOOBAR2000_DESKTOP_WINDOWS
 //! \since 1.1
+//! Extendsion to popup_message API. \n
+//! Thread safety: OK to call from worker threads (will delegate UI ops to main thread automatically). \n
+//! Note that all strings are UTF-8.
 class NOVTABLE popup_message_v2 : public service_base {
 	FB2K_MAKE_SERVICE_COREAPI(popup_message_v2);
 public:
-	virtual void show(HWND parent, const char * msg, t_size msg_length, const char * title, t_size title_length) = 0;
-	void show(HWND parent, const char * msg, const char * title) {show(parent, msg, SIZE_MAX, title, SIZE_MAX);}
+	virtual void show(fb2k::hwnd_t parent, const char * msg, t_size msg_length, const char * title, t_size title_length) = 0;
+	void show(fb2k::hwnd_t parent, const char * msg, const char * title) {show(parent, msg, SIZE_MAX, title, SIZE_MAX);}
 
-	static void g_show(HWND parent, const char * msg, const char * title = "Information");
-	static void g_complain(HWND parent, const char * whatFailed, const char * msg);
-	static void g_complain(HWND parent, const char * whatFailed, const std::exception & e);
+	static void g_show(fb2k::hwnd_t parent, const char * msg, const char * title = "Information");
+	static void g_complain(fb2k::hwnd_t parent, const char * whatFailed, const char * msg);
+	static void g_complain(fb2k::hwnd_t parent, const char * whatFailed, const std::exception & e);
 };
-#endif
 
-#ifdef FOOBAR2000_MODERN
 namespace fb2k {
+	//! \since 2.0
+	//! Not really implemented for Windows yet.
 	class popup_toast : public service_base {
 		FB2K_MAKE_SERVICE_COREAPI( popup_toast );
 	public:
@@ -76,17 +76,20 @@ namespace fb2k {
 
 	class toastFormatter : public pfc::string_formatter {
 	public:
-		~toastFormatter() {
-			if ( this->length() > 0 ) showToast( c_str() );
+		~toastFormatter() noexcept {
+			try {
+				if ( this->length() > 0 ) showToast( c_str() );
+			} catch(...) {}
 		}
     };
 }
 
 #define FB2K_Toast() ::fb2k::toastFormatter()._formatter()
-#endif
 
-#if FOOBAR2000_TARGET_VERSION >= 80
+
 //! \since 1.5
+//! MessageBox-like dialog, only non-blocking and with dark mode support under foobar2000 v2.0. \n
+//! Call from main thread only (contrary to popup_message / popup_message_v2) !!!
 class NOVTABLE popup_message_v3 : public service_base {
     FB2K_MAKE_SERVICE_COREAPI(popup_message_v3);
 public:
@@ -117,11 +120,11 @@ public:
         uint32_t buttons = 0;
         uint32_t defButton = 0;
         uint32_t icon = iconNone;
-        completion_notify::ptr reply;
-#ifdef _WIN32
-        HWND wndParent = NULL;
-#endif
+        completion_notify::ptr reply; // optional
+        fb2k::hwnd_t wndParent = NULL;
         const char * msgDoNotAskAgain = nullptr;
+
+		void show();
     };
 
     //! Shows an interactive query presenting the user with multiple actions to choose from.
@@ -130,12 +133,12 @@ public:
     //! Modal version of show_query. Reply part of the argument can be empty; the status code will be returned.
     virtual uint32_t show_query_modal(query_t const &) = 0;
 
-#ifdef FOOBAR2000_DESKTOP_WINDOWS
 	// Minimalist MessageBox() reimplementation wrapper
-	int messageBox(HWND, const char*, const char*, UINT);
-#endif
+	int messageBox(fb2k::hwnd_t, const char*, const char*, unsigned);
+	void messageBoxAsync(fb2k::hwnd_t, const char*, const char*, unsigned, std::function<void (int)> reply = nullptr);
+	static query_t setupMessageBox(fb2k::hwnd_t parent, const char* msg, const char* title, unsigned flags);
+	static int messageBoxReply(uint32_t);
     
     //! Old method wrapper
     void show_query( const char * title, const char * msg, unsigned buttons, completion_notify::ptr reply);
 };
-#endif // FOOBAR2000_TARGET_VERSION >= 80
